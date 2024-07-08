@@ -26,7 +26,6 @@ def fetch_description(text):
         messages=[{"role": "user", "content": f"{text}의 뜻이 뭐야"}],
     )
     return response.choices[0].message.content
-
 class TooltipWindow(QWidget):
     def __init__(self):
         super().__init__()
@@ -59,7 +58,8 @@ class TooltipWindow(QWidget):
         self.adjustSize()
 
         mouse_x, mouse_y = pyautogui.position()
-        self.setGeometry(mouse_x, mouse_y, self.width(), self.height())
+        window_x = mouse_x - (self.width() // 2)
+        self.setGeometry(window_x, mouse_y, self.width(), self.height())
         self.setWindowTitle('Text Description')
         self.setWindowFlags(Qt.Tool | Qt.FramelessWindowHint | Qt.WindowStaysOnTopHint)
         self.show()
@@ -78,6 +78,12 @@ class TooltipWindow(QWidget):
         self.label.setText(description)
         self.label.adjustSize()
         self.adjustSize()
+
+        # 창 위치 업데이트
+        mouse_x, _ = pyautogui.position()
+        window_x = mouse_x - (self.width() // 2)
+        self.move(window_x, self.y())
+
         self.thread.quit()
         self.thread.wait()
 
@@ -112,4 +118,3 @@ if __name__ == '__main__':
     app = QApplication(sys.argv)
     ex = TooltipWindow()
     sys.exit(app.exec_())
-
