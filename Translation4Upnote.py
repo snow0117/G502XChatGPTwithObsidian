@@ -1,10 +1,13 @@
 import sys
-import asyncio
-from PyQt5.QtWidgets import QApplication, QWidget, QLabel, QVBoxLayout, QPushButton, QSizePolicy
-from PyQt5.QtCore import Qt, QThread, pyqtSignal, QObject
 import pyperclip
 import pyautogui
 from openai import OpenAI
+import pyttsx3
+from PyQt5.QtWidgets import QApplication, QWidget, QLabel, QVBoxLayout, QPushButton, QSizePolicy
+from PyQt5.QtCore import Qt, QThread, pyqtSignal, QObject
+
+# OpenAI API 키 설정
+
 
 class Worker(QObject):
     finished = pyqtSignal(str)
@@ -32,6 +35,7 @@ class TooltipWindow(QWidget):
 
     def initUI(self):
         clip_text = pyperclip.paste()
+        self.clip_text = clip_text
         self.layout = QVBoxLayout()
         self.layout.setContentsMargins(10, 10, 10, 10)
         self.layout.setSpacing(10)
@@ -41,10 +45,14 @@ class TooltipWindow(QWidget):
         self.label.setStyleSheet("color: black; padding: 10px; background-color: white;")
         self.label.setSizePolicy(QSizePolicy.Preferred, QSizePolicy.Minimum)
 
+        self.speakButton = QPushButton("Speak", self)
+        self.speakButton.clicked.connect(self.speak_text)
+
         self.closeButton = QPushButton("Close", self)
         self.closeButton.clicked.connect(self.close)
 
         self.layout.addWidget(self.label)
+        self.layout.addWidget(self.speakButton)
         self.layout.addWidget(self.closeButton)
         self.setLayout(self.layout)
 
@@ -73,8 +81,21 @@ class TooltipWindow(QWidget):
         self.thread.quit()
         self.thread.wait()
 
+    def speak_text(self):
+        speak_text(self.clip_text)
+
     def closeEvent(self, event):
         app.quit()
+
+def speak_text(text):
+    engine = pyttsx3.init()
+    voices = engine.getProperty('voices')
+    for voice in voices:
+        if "Zira" in voice.name:
+            engine.setProperty('voice', voice.id)
+            break
+    engine.say(text)
+    engine.runAndWait()
 
 if __name__ == '__main__':
     app = QApplication(sys.argv)
