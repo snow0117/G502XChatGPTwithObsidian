@@ -4,10 +4,9 @@ import pyautogui
 from openai import OpenAI
 import pyttsx3
 from PyQt5.QtWidgets import QApplication, QWidget, QLabel, QVBoxLayout, QPushButton, QSizePolicy
-from PyQt5.QtCore import Qt, QThread, pyqtSignal, QObject
+from PyQt5.QtCore import Qt, QThread, pyqtSignal, QObject, QPoint
 
 # OpenAI API 키 설정
-
 
 class Worker(QObject):
     finished = pyqtSignal(str)
@@ -32,6 +31,7 @@ class TooltipWindow(QWidget):
     def __init__(self):
         super().__init__()
         self.initUI()
+        self.offset = None
 
     def initUI(self):
         clip_text = pyperclip.paste()
@@ -84,6 +84,17 @@ class TooltipWindow(QWidget):
     def speak_text(self):
         speak_text(self.clip_text)
 
+    def mousePressEvent(self, event):
+        if event.button() == Qt.LeftButton:
+            self.offset = event.pos()
+
+    def mouseMoveEvent(self, event):
+        if self.offset is not None and event.buttons() == Qt.LeftButton:
+            self.move(self.pos() + event.pos() - self.offset)
+
+    def mouseReleaseEvent(self, event):
+        self.offset = None
+
     def closeEvent(self, event):
         app.quit()
 
@@ -101,3 +112,4 @@ if __name__ == '__main__':
     app = QApplication(sys.argv)
     ex = TooltipWindow()
     sys.exit(app.exec_())
+
